@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentalHolidays – Calculadora de Estudio de Mercado</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dark: #9A7530;
+    --navy: #0D1B2E;
+    --navy-mid: #1A2F4A;
+    --navy-light: #243A5A;
+    --text-light: #7A8FA6;
+    --white: #FFFFFF;
+    --green: #5BD98A;
+    --blue: #89c4ff;
+    --orange: #FFB347;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(201,168,76,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(201,168,76,0.06) 0%, transparent 60%);
+  }
+
+  header {
+    background: rgba(13,27,46,0.97);
+    border-bottom: 1px solid rgba(201,168,76,0.25);
+    backdrop-filter: blur(12px);
+    padding: 0 40px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; height: 72px;
+  }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .logo-text { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; }
+  .logo-sub { font-size: 10px; color: var(--gold); letter-spacing: 2.5px; text-transform: uppercase; font-weight: 500; display: block; margin-top: -2px; }
+  .header-badge {
+    background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold-light); font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 6px 14px; border-radius: 20px;
+  }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; margin-bottom: 6px; }
+  .page-title span { color: var(--gold); }
+  .page-subtitle { color: var(--text-light); font-size: 15px; margin-bottom: 36px; }
+
+  .card {
+    background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 16px; padding: 26px 30px; margin-bottom: 22px;
+    box-shadow: 0 2px 12px rgba(13,27,46,0.10);
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600;
+    color: var(--gold-light); margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+  }
+  .card-title::before { content: ''; width: 3px; height: 17px; background: var(--gold); border-radius: 2px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .comm-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 11px; font-weight: 600; color: var(--text-light); letter-spacing: 1.2px; text-transform: uppercase; }
+  input[type=text], input[type=date], input[type=number] {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 8px; color: var(--white); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; padding: 10px 13px; transition: border-color .2s, background .2s; outline: none;
+    -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus { border-color: var(--gold); background: rgba(201,168,76,0.06); }
+  input::placeholder { color: rgba(255,255,255,0.2); }
+  .euro-wrap { position: relative; display: flex; align-items: center; }
+  .euro-wrap .sym { position: absolute; left: 11px; color: var(--gold); font-weight: 600; font-size: 13px; pointer-events: none; }
+  .euro-wrap input { padding-left: 25px; width: 100%; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab-btn {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.15);
+    color: var(--text-light); border-radius: 8px; padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .2s;
+  }
+  .tab-btn.active { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold-light); font-weight: 700; }
+  .tab-btn:hover:not(.active) { border-color: rgba(201,168,76,0.35); color: var(--white); }
+
+  .month-panel { display: none; }
+  .month-panel.active { display: block; }
+
+  .panel-header {
+    display: flex; align-items: stretch; justify-content: space-between;
+    margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+  }
+  .panel-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .stat-badge {
+    border-radius: 10px; padding: 12px 18px; min-width: 150px;
+  }
+  .stat-badge.gold-b  { background: rgba(201,168,76,0.10); border: 1px solid rgba(201,168,76,0.22); }
+  .stat-badge.green-b { background: rgba(91,217,138,0.07); border: 1px solid rgba(91,217,138,0.22); }
+  .stat-badge.blue-b  { background: rgba(137,196,255,0.07); border: 1px solid rgba(137,196,255,0.18); }
+  .stat-badge.orange-b { background: rgba(255,179,71,0.07); border: 1px solid rgba(255,179,71,0.22); }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .gold-b   .stat-label { color: rgba(201,168,76,0.7); }
+  .green-b  .stat-label { color: rgba(91,217,138,0.7); }
+  .blue-b   .stat-label { color: rgba(137,196,255,0.7); }
+  .orange-b .stat-label { color: rgba(255,179,71,0.7); }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+  .gold-b   .stat-value { color: var(--gold-light); }
+  .green-b  .stat-value { color: var(--green); }
+  .blue-b   .stat-value { color: var(--blue); }
+  .orange-b .stat-value { color: var(--orange); }
+
+  /* Nights input in panel */
+  .nights-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    background: rgba(255,179,71,0.06); border: 1px solid rgba(255,179,71,0.18);
+    border-radius: 10px; padding: 10px 16px;
+  }
+  .nights-row label { margin: 0; color: var(--orange); font-size: 11px; letter-spacing: 1px; }
+  .nights-row input { width: 80px; padding: 7px 10px; font-size: 13px; }
+
+  .btn-add {
+    background: none; border: 1px dashed rgba(201,168,76,0.3); color: var(--gold);
+    border-radius: 8px; padding: 9px 18px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; gap: 7px; white-space: nowrap; align-self: center;
+  }
+  .btn-add:hover { background: rgba(201,168,76,0.08); border-style: solid; }
+  .btn-copy-marzo {
+    background: rgba(91,217,138,0.08); border: 1px solid rgba(91,217,138,0.35); color: var(--green);
+    border-radius: 8px; padding: 9px 18px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; gap: 7px; white-space: nowrap; align-self: center;
+  }
+  .btn-copy-marzo:hover { background: rgba(91,217,138,0.18); border-color: var(--green); }
+  .btn-copy-marzo.copied { background: rgba(91,217,138,0.25); }
+
+  .competitors-list { display: flex; flex-direction: column; gap: 8px; }
+  .competitor-row {
+    display: grid; grid-template-columns: 26px 1fr auto;
+    align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px; padding: 10px 14px;
+    animation: fadeIn .2s ease;
+    transition: border-color .2s;
+  }
+  .competitor-row:focus-within { border-color: rgba(201,168,76,0.3); }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  .comp-num { font-size: 11px; color: var(--text-light); font-weight: 700; text-align: center; }
+  .comp-fields { display: grid; grid-template-columns: 160px 1fr 160px; gap: 12px; align-items: end; }
+  .comp-lbl { font-size: 10px; color: var(--text-light); margin-bottom: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .net-auto {
+    background: rgba(91,217,138,0.07); border: 1px solid rgba(91,217,138,0.2);
+    border-radius: 8px; padding: 10px 13px; font-size: 14px;
+    color: var(--green); font-weight: 700; font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .net-auto .net-icon { font-size: 11px; opacity: 0.7; }
+  .comp-del {
+    background: none; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3);
+    border-radius: 6px; width: 30px; height: 30px; cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; line-height:1;
+  }
+  .comp-del:hover { border-color: #e05252; color: #e05252; }
+
+  .formula-box {
+    margin-top: 16px; padding: 12px 16px;
+    background: rgba(137,196,255,0.05); border: 1px solid rgba(137,196,255,0.15);
+    border-radius: 8px; font-size: 12px; color: var(--text-light);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .formula-box strong { color: var(--white); }
+  .formula-box .arrow { color: var(--gold); font-weight: 700; }
+
+  .btn-calculate {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: var(--navy); border: none; border-radius: 10px; padding: 15px 36px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: transform .15s, box-shadow .15s; box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+  }
+  .btn-calculate:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,168,76,0.4); }
+  .btn-pdf {
+    background: transparent; border: 1px solid var(--gold); color: var(--gold);
+    border-radius: 8px; padding: 10px 22px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all .2s;
+  }
+  .btn-pdf:hover { background: var(--gold); color: var(--navy); }
+
+  /* RESULTS */
+  #results { display: none; }
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+  .results-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .summary-card { background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.15); border-radius: 12px; padding: 18px 20px; text-align: center; }
+  .summary-card .val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gold-light); display: block; margin-bottom: 4px; }
+  .summary-card .val.green { color: var(--green); }
+  .summary-card .val.orange { color: var(--orange); }
+  .summary-card .lbl { font-size: 11px; color: var(--text-light); font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; }
+
+  .season-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .season-label::after { content: ''; flex: 1; height: 1px; background: rgba(201,168,76,0.2); }
+
+  .results-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+  .results-table th {
+    background: rgba(201,168,76,0.12); color: var(--gold-light); font-size: 9.5px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; padding: 10px 12px; text-align: right;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  .results-table th:first-child { text-align: left; border-radius: 8px 0 0 0; }
+  .results-table th:last-child { border-radius: 0 8px 0 0; }
+  .results-table td { padding: 10px 12px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.82); }
+  .results-table td:first-child { text-align: left; font-weight: 600; color: var(--white); }
+  .results-table tr:last-child td { border-bottom: none; }
+  .results-table tr:hover td { background: rgba(201,168,76,0.04); }
+  .results-table .gold-cell { color: var(--gold-light); font-weight: 700; }
+  .results-table .green-cell { color: var(--green); font-weight: 700; }
+  .results-table .blue-cell { color: var(--blue); font-style: italic; }
+  .results-table .orange-cell { color: var(--orange); font-weight: 700; }
+  .results-table .highlight-row td { background: rgba(91,217,138,0.06); }
+
+  /* EARNINGS TABLE */
+  .earnings-section { margin-top: 32px; }
+  .earnings-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .earnings-label::after { content: ''; flex: 1; height: 1px; background: rgba(91,217,138,0.2); }
+  .earnings-note { font-size: 11px; color: var(--text-light); margin-top: 10px; }
+
+  .divider { height: 1px; background: rgba(201,168,76,0.12); margin: 28px 0; }
+  .services-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .service-tag { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); color: var(--gold-light); font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 20px; }
+
+  @media (max-width: 860px) {
+    header { padding: 0 16px; }
+    main { padding: 20px 14px 60px; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .comm-grid { grid-template-columns: 1fr 1fr; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .comp-fields { grid-template-columns: 1fr 1fr; }
+    .tabs { gap: 5px; }
+    .tab-btn { font-size: 11px; padding: 7px 11px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🏖️</div>
+      <div>
+        <span class="logo-text">RentalHolidays</span>
+        <span class="logo-sub">Makes Me Happy</span>
+      </div>
+    </div>
+    <span class="header-badge">Estudio de Mercado</span>
+  </div>
+</header>
+
+<main>
+  <h1 class="page-title">Calculadora de <span>Estudio de Mercado</span></h1>
+  <p class="page-subtitle">Ingresa los precios de la competencia y las noches estimadas de alquiler — el neto al propietario y los ingresos mensuales se generan automáticamente.</p>
+
+  <!-- DATOS DEL DESTINATARIO -->
+  <div class="card">
+    <div class="card-title">Datos del Destinatario</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nombre / Razón Social</label>
+        <input type="text" id="clientName" placeholder="Ej: Antonio García">
+      </div>
+      <div class="form-group">
+        <label>Dirección del Alojamiento</label>
+        <input type="text" id="clientAddress" placeholder="Calle y número">
+      </div>
+      <div class="form-group">
+        <label>NIF / DNI</label>
+        <input type="text" id="clientNIF" placeholder="Ej: 12345678A">
+      </div>
+      <div class="form-group">
+        <label>Nº de Estudio</label>
+        <input type="text" id="studyNum" placeholder="Ej: 697">
+      </div>
+      <div class="form-group">
+        <label>Fecha del Estudio</label>
+        <input type="date" id="studyDate">
+      </div>
+      <div class="form-group">
+        <label>Localidad</label>
+        <input type="text" id="clientCity" placeholder="Ej: Castellón de la Plana">
+      </div>
+    </div>
+  </div>
+
+  <!-- PARÁMETROS -->
+  <div class="card">
+    <div class="card-title">Parámetros de Cálculo</div>
+    <div class="comm-grid">
+      <div class="form-group">
+        <label>Com. Agencia (%)</label>
+        <div class="euro-wrap"><span class="sym">%</span>
+          <input type="number" id="commAgency" value="35" min="0" max="100" step="0.1" oninput="refreshAllMonths()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Seguro Daños (%)</label>
+        <div class="euro-wrap"><span class="sym">%</span>
+          <input type="number" id="commInsurance" value="5" min="0" max="100" step="0.1" oninput="refreshAllMonths()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Com. Portales (%)</label>
+        <div class="euro-wrap"><span class="sym">%</span>
+          <input type="number" id="commPortals" value="34" min="0" max="100" step="0.1" oninput="refreshAllMonths()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>IVA (%)</label>
+        <div class="euro-wrap"><span class="sym">%</span>
+          <input type="number" id="commIVA" value="21" min="0" max="100" step="0.1" oninput="refreshAllMonths()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Electricidad (€/noche)</label>
+        <div class="euro-wrap"><span class="sym">€</span>
+          <input type="number" id="costElec" value="5.00" min="0" step="0.5" oninput="refreshAllMonths()">
+        </div>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      <span>💡 Fórmula neto propietario:</span>
+      <span><strong>base</strong> = PVP − electricidad</span>
+      <span class="arrow">→</span>
+      <span><strong>neto</strong> = base ÷ (1 + ag% + seg% + port% + IVA%)</span>
+      <span class="arrow">→</span>
+      <span><strong>ingresos mes</strong> = neto × noches estimadas</span>
+    </div>
+  </div>
+
+  <!-- PRECIOS COMPETENCIA -->
+  <div class="card">
+    <div class="card-title">Precios de la Competencia por Mes</div>
+    <div class="tabs" id="monthTabs"></div>
+    <div id="monthPanels"></div>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; margin-bottom:40px;">
+    <button class="btn-calculate" onclick="calculate()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3"/><path d="M9 15h3l8.5-8.5a1.5 1.5 0 00-3-3L9 12v3z"/></svg>
+      Calcular Estudio de Mercado
+    </button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="results-header">
+      <h2 class="results-title">Resultado del Estudio</h2>
+      <button class="btn-pdf" onclick="generatePDF()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3"/><rect x="3" y="7" width="18" height="10" rx="1"/></svg>
+        Descargar PDF Profesional
+      </button>
+    </div>
+    <div class="summary-grid" id="summaryCards"></div>
+    <div class="divider"></div>
+    <div style="margin-bottom:20px;">
+      <div class="season-label">🌞 Temporada Alta</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="results-table" id="tableAlta"></table>
+      </div>
+    </div>
+    <div>
+      <div class="season-label">🍂 Temporada Baja</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="results-table" id="tableBaja"></table>
+      </div>
+    </div>
+
+    <!-- EARNINGS TABLE -->
+    <div class="earnings-section">
+      <div class="divider"></div>
+      <div class="earnings-label">💰 Ingresos Estimados del Propietario por Mes</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="results-table" id="tableEarnings"></table>
+      </div>
+      <p class="earnings-note">* Los ingresos mensuales se calculan multiplicando el neto/noche por las noches estimadas de alquiler introducidas en cada mes. Ajusta las noches según tu estimación de ocupación.</p>
+    </div>
+
+    <div class="divider"></div>
+    <div class="card">
+      <div class="card-title">Servicios Incluidos</div>
+      <div class="services-list" id="servicesList"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────────
+const ALL_MONTHS = [
+  { id:'julio',      label:'Julio',      high:true,  days:31, defaultNights:25 },
+  { id:'agosto',     label:'Agosto',     high:true,  days:31, defaultNights:25 },
+  { id:'enero',      label:'Enero',      high:false, days:31, defaultNights:10 },
+  { id:'febrero',    label:'Febrero',    high:false, days:28, defaultNights:10 },
+  { id:'marzo',      label:'Marzo',      high:false, days:31, defaultNights:12 },
+  { id:'abril',      label:'Abril',      high:false, days:30, defaultNights:15 },
+  { id:'mayo',       label:'Mayo',       high:false, days:31, defaultNights:15 },
+  { id:'junio',      label:'Junio',      high:false, days:30, defaultNights:18 },
+  { id:'septiembre', label:'Septiembre', high:false, days:30, defaultNights:18 },
+  { id:'octubre',    label:'Octubre',    high:false, days:31, defaultNights:12 },
+  { id:'noviembre',  label:'Noviembre',  high:false, days:30, defaultNights:10 },
+  { id:'diciembre',  label:'Diciembre',  high:false, days:31, defaultNights:12 },
+];
+
+const SERVICES = [
+  'Limpieza (obligatorio por ley)',
+  'Sábanas y toallas',
+  'Atención telefónica 24/7',
+  'Resolución de incidencias y averías',
+  'Colaboraciones con agencias de viajes',
+  'Portal de reservas propio y terceros',
+  'Parte de viajeros (obligatorio por ley)',
+  'Entrega y recogida de llaves presencial',
+  'Supervisión del alojamiento',
+  'Reparación de daños de huéspedes',
+  'Trámite registro de la propiedad',
+  'Trámite de licencia turística',
+];
+
+const counters = {};
+ALL_MONTHS.forEach(m => counters[m.id] = 0);
+let storedResults = {};
+
+document.getElementById('studyDate').value = new Date().toISOString().split('T')[0];
+
+// ── FORMULA ────────────────────────────────────────────────────────────────────
+// Desglosa PVP en sus componentes de forma correcta usando la cadena de márgenes
+function calcFromPVP(pvp) {
+  const elec   = parseFloat(document.getElementById('costElec').value)      || 5;
+  const pA     = (parseFloat(document.getElementById('commAgency').value)    || 35) / 100;
+  const pI     = (parseFloat(document.getElementById('commInsurance').value) || 5)  / 100;
+  const pP     = (parseFloat(document.getElementById('commPortals').value)   || 34) / 100;
+  const pIVA   = (parseFloat(document.getElementById('commIVA').value)       || 21) / 100;
+
+  // PVP = base = neto × (1+pA) × (1+pI) × (1+pP) × (1+pIVA) + elec
+  // Despejamos neto:
+  const base   = pvp - elec;
+  const factor = (1 + pA) * (1 + pI) * (1 + pP) * (1 + pIVA);
+  const neto   = base / factor;
+
+  const agency    = neto * pA;
+  const insurance = (neto + agency) * pI;
+  const portals   = (neto + agency + insurance) * pP;
+  const ivaAmt    = (neto + agency + insurance + portals) * pIVA;
+
+  return {
+    pvp,
+    neto:      +neto.toFixed(2),
+    agency:    +agency.toFixed(2),
+    insurance: +insurance.toFixed(2),
+    portals:   +portals.toFixed(2),
+    ivaAmt:    +ivaAmt.toFixed(2),
+    elec:      +elec.toFixed(2),
+  };
+}
+
+function fmt(n) {
+  return typeof n === 'number' && !isNaN(n)
+    ? Math.round(n) + ' €'
+    : '— €';
+}
+function fmtN(n) {
+  return typeof n === 'number' && !isNaN(n)
+    ? Math.round(n) + ' €'
+    : '—';
+}
+
+// ── BUILD TABS & PANELS ────────────────────────────────────────────────────────
+const tabsEl   = document.getElementById('monthTabs');
+const panelsEl = document.getElementById('monthPanels');
+
+ALL_MONTHS.forEach((m, idx) => {
+  const tab = document.createElement('button');
+  tab.className = 'tab-btn' + (idx === 0 ? ' active' : '');
+  tab.textContent = m.label;
+  tab.dataset.month = m.id;
+  tab.onclick = () => activateTab(m.id);
+  tabsEl.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'month-panel' + (idx === 0 ? ' active' : '');
+  panel.id = 'panel_' + m.id;
+  panel.innerHTML = `
+    <div class="nights-row">
+      <label>🌙 NOCHES ESTIMADAS DE ALQUILER EN ${m.label.toUpperCase()}:</label>
+      <div class="euro-wrap">
+        <input type="number" id="nights_${m.id}" value="${m.defaultNights}" min="0" max="${m.days}" step="1"
+          oninput="recalcMonth('${m.id}')">
+      </div>
+      <span style="font-size:11px;color:var(--text-light);">(máx. ${m.days} días)</span>
+    </div>
+    <div class="panel-header">
+      <div class="panel-stats">
+        <div class="stat-badge gold-b">
+          <div class="stat-label">Promedio Mercado (PVP)</div>
+          <div class="stat-value" id="avg_${m.id}">— €</div>
+        </div>
+        <div class="stat-badge green-b">
+          <div class="stat-label">Neto Propietario / noche</div>
+          <div class="stat-value" id="neto_${m.id}">— €</div>
+        </div>
+        <div class="stat-badge orange-b">
+          <div class="stat-label">Ingresos estimados mes</div>
+          <div class="stat-value" id="ingreso_${m.id}">— €</div>
+        </div>
+        <div class="stat-badge blue-b">
+          <div class="stat-label">Precios ingresados</div>
+          <div class="stat-value" id="count_${m.id}">0</div>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addCompetitor('${m.id}')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar precio
+      </button>
+      ${m.id === 'marzo' ? `
+      <button class="btn-copy-marzo" onclick="copiarDesdeMarzo()" title="Copia los precios de Marzo a todos los meses de temporada baja">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copiar a meses de temporada baja
+      </button>` : ''}
+    </div>
+    <div class="competitors-list" id="list_${m.id}"></div>
+  `;
+  panelsEl.appendChild(panel);
+
+  addCompetitor(m.id);
+  addCompetitor(m.id);
+  addCompetitor(m.id);
+});
+
+function activateTab(monthId) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.toggle('active', t.dataset.month === monthId));
+  document.querySelectorAll('.month-panel').forEach(p => p.classList.toggle('active', p.id === 'panel_' + monthId));
+}
+
+function addCompetitor(monthId) {
+  counters[monthId]++;
+  const n    = counters[monthId];
+  const list = document.getElementById('list_' + monthId);
+  const row  = document.createElement('div');
+  row.className = 'competitor-row';
+  row.id = `comp_${monthId}_${n}`;
+  row.innerHTML = `
+    <span class="comp-num">${n}</span>
+    <div class="comp-fields">
+      <div>
+        <div class="comp-lbl">Precio / noche en mercado (€)</div>
+        <div class="euro-wrap">
+          <span class="sym">€</span>
+          <input type="number" id="price_${monthId}_${n}" placeholder="0" min="0" step="1"
+            oninput="recalcMonth('${monthId}')">
+        </div>
+      </div>
+      <div>
+        <div class="comp-lbl">Nota (opcional)</div>
+        <input type="text" id="note_${monthId}_${n}" placeholder="Airbnb, Booking…">
+      </div>
+      <div>
+        <div class="comp-lbl">Neto propietario (auto)</div>
+        <div class="net-auto" id="row_neto_${monthId}_${n}">
+          <span class="net-icon">🔒</span>
+          <span id="row_neto_val_${monthId}_${n}">—</span>
+        </div>
+      </div>
+    </div>
+    <button class="comp-del" onclick="removeCompetitor('${monthId}',${n})" title="Eliminar">×</button>
+  `;
+  list.appendChild(row);
+}
+
+function removeCompetitor(monthId, n) {
+  const el = document.getElementById(`comp_${monthId}_${n}`);
+  if (el) { el.remove(); recalcMonth(monthId); }
+}
+
+function recalcMonth(monthId) {
+  const list   = document.getElementById('list_' + monthId);
+  const inputs = list.querySelectorAll('input[id^="price_"]');
+  const prices = [];
+
+  inputs.forEach(inp => {
+    const v     = parseFloat(inp.value);
+    // Extract just the last segment (the counter n)
+    const parts = inp.id.split('_');
+    const rowN  = parts[parts.length - 1];
+    const mid   = parts.slice(1, parts.length - 1).join('_');
+    const netoEl = document.getElementById(`row_neto_val_${mid}_${rowN}`);
+    const netoBox = document.getElementById(`row_neto_${mid}_${rowN}`);
+
+    if (!isNaN(v) && v > 0) {
+      prices.push(v);
+      if (netoEl) {
+        const r = calcFromPVP(v);
+        netoEl.textContent = fmtN(r.neto);
+        if (netoBox) netoBox.style.borderColor = 'rgba(91,217,138,0.4)';
+      }
+    } else {
+      if (netoEl) netoEl.textContent = '—';
+      if (netoBox) netoBox.style.borderColor = '';
+    }
+  });
+
+  const avg    = prices.length ? prices.reduce((a,b) => a+b, 0) / prices.length : null;
+  const nights = parseFloat(document.getElementById('nights_' + monthId).value) || 0;
+
+  document.getElementById('avg_' + monthId).textContent   = avg !== null ? fmt(avg) : '— €';
+  document.getElementById('count_' + monthId).textContent = prices.length;
+
+  if (avg !== null) {
+    const r = calcFromPVP(avg);
+    document.getElementById('neto_' + monthId).textContent    = fmt(r.neto);
+    document.getElementById('ingreso_' + monthId).textContent = fmt(r.neto * nights);
+  } else {
+    document.getElementById('neto_' + monthId).textContent    = '— €';
+    document.getElementById('ingreso_' + monthId).textContent = '— €';
+  }
+}
+
+function refreshAllMonths() {
+  ALL_MONTHS.forEach(m => recalcMonth(m.id));
+}
+
+// ── COPIAR DESDE MARZO ────────────────────────────────────────────────────────
+const MESES_BAJA = ['enero','febrero','abril','mayo','junio','septiembre','octubre','noviembre','diciembre'];
+
+function copiarDesdeMarzo() {
+  // 1. Leer precios y notas de Marzo
+  const listaMarzo = document.getElementById('list_marzo');
+  const inputsMarzo = Array.from(listaMarzo.querySelectorAll('.competitor-row'));
+  const datosMarzo = inputsMarzo.map(row => {
+    const priceInp = row.querySelector('input[id^="price_"]');
+    const noteInp  = row.querySelector('input[id^="note_"]');
+    return {
+      precio: priceInp ? priceInp.value : '',
+      nota:   noteInp  ? noteInp.value  : '',
+    };
+  }).filter(d => d.precio !== '');
+
+  const nightsMarzo = document.getElementById('nights_marzo').value;
+
+  if (datosMarzo.length === 0) {
+    alert('Primero introduce al menos un precio en el mes de Marzo.');
+    return;
+  }
+
+  // 2. Copiar a cada mes de temporada baja (excepto Marzo)
+  MESES_BAJA.forEach(mesId => {
+    // Limpiar filas existentes
+    const lista = document.getElementById('list_' + mesId);
+    Array.from(lista.querySelectorAll('.competitor-row')).forEach(r => r.remove());
+
+    // Copiar noches de Marzo
+    const nightsInput = document.getElementById('nights_' + mesId);
+    if (nightsInput) nightsInput.value = nightsMarzo;
+
+    // Añadir una fila por cada precio de Marzo
+    datosMarzo.forEach(d => {
+      addCompetitor(mesId);
+      const n = counters[mesId];
+      const priceEl = document.getElementById('price_' + mesId + '_' + n);
+      const noteEl  = document.getElementById('note_'  + mesId + '_' + n);
+      if (priceEl) priceEl.value = d.precio;
+      if (noteEl)  noteEl.value  = d.nota;
+    });
+
+    recalcMonth(mesId);
+  });
+
+  // 3. Feedback visual en el botón
+  const btn = document.querySelector('.btn-copy-marzo');
+  if (btn) {
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> ¡Copiado a ' + MESES_BAJA.length + ' meses!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = originalHTML; btn.classList.remove('copied'); }, 3000);
+  }
+}
+
+// ── CALCULATE ──────────────────────────────────────────────────────────────────
+function getMonthData(monthId) {
+  const list   = document.getElementById('list_' + monthId);
+  const inputs = list.querySelectorAll('input[id^="price_"]');
+  const prices = Array.from(inputs).map(i => parseFloat(i.value)).filter(v => !isNaN(v) && v > 0);
+  const avg    = prices.length ? prices.reduce((a,b) => a+b, 0) / prices.length : 0;
+  const nights = parseFloat(document.getElementById('nights_' + monthId).value) || 0;
+  const mConf  = ALL_MONTHS.find(m => m.id === monthId);
+
+  if (avg > 0) {
+    const r = calcFromPVP(avg);
+    return { ...r, nights, monthlyEarnings: +(r.neto * nights).toFixed(2), label: mConf.label, high: mConf.high };
+  }
+  return { pvp:0, neto:0, agency:0, insurance:0, portals:0, ivaAmt:0, elec:0, nights, monthlyEarnings:0, label: mConf.label, high: mConf.high };
+}
+
+function calculate() {
+  const allData = ALL_MONTHS.map(m => getMonthData(m.id));
+  const highRows = allData.filter(r => r.high);
+  const lowRows  = allData.filter(r => !r.high);
+  storedResults  = { highRows, lowRows, allRows: allData };
+
+  buildTable('tableAlta', highRows);
+  buildTable('tableBaja', lowRows);
+  buildEarningsTable('tableEarnings', allData);
+
+  const withPVP = allData.filter(r => r.pvp > 0);
+  const totalYearly = allData.reduce((a,r) => a + r.monthlyEarnings, 0);
+  const avgNet = withPVP.length ? withPVP.reduce((a,r) => a+r.neto, 0) / withPVP.length : 0;
+  const avgPVP = withPVP.length ? withPVP.reduce((a,r) => a+r.pvp,  0) / withPVP.length : 0;
+  const maxPVP = withPVP.length ? Math.max(...withPVP.map(r => r.pvp)) : 0;
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="summary-card"><span class="val">${fmt(maxPVP)}</span><span class="lbl">PVP Máximo de Mercado</span></div>
+    <div class="summary-card"><span class="val">${fmt(avgNet)}</span><span class="lbl">Neto Medio / Noche</span></div>
+    <div class="summary-card"><span class="val">${fmt(avgPVP)}</span><span class="lbl">PVP Medio de Mercado</span></div>
+    <div class="summary-card"><span class="val green">${fmt(totalYearly)}</span><span class="lbl">Ingresos Anuales Estimados</span></div>
+  `;
+
+  document.getElementById('servicesList').innerHTML = SERVICES.map(s => `<span class="service-tag">✓ ${s}</span>`).join('');
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function buildTable(tableId, rows) {
+  document.getElementById(tableId).innerHTML = `
+    <thead><tr>
+      <th>Mes</th>
+      <th>PVP Mercado (prom.)</th>
+      <th>Neto Propietario</th>
+      <th>Com. Agencia</th>
+      <th>Seguro Daños</th>
+      <th>Com. Portales</th>
+      <th>IVA</th>
+      <th>Electricidad</th>
+    </tr></thead>
+    <tbody>
+      ${rows.map(r => `<tr>
+        <td>${r.label}</td>
+        <td class="blue-cell">${r.pvp > 0 ? fmt(r.pvp) : '—'}</td>
+        <td class="green-cell">${r.neto > 0 ? fmt(r.neto) : '—'}</td>
+        <td>${r.agency > 0 ? fmt(r.agency) : '—'}</td>
+        <td>${r.insurance > 0 ? fmt(r.insurance) : '—'}</td>
+        <td>${r.portals > 0 ? fmt(r.portals) : '—'}</td>
+        <td>${r.ivaAmt > 0 ? fmt(r.ivaAmt) : '—'}</td>
+        <td>${r.elec > 0 ? fmt(r.elec) : '—'}</td>
+      </tr>`).join('')}
+    </tbody>
+  `;
+}
+
+function buildEarningsTable(tableId, rows) {
+  const total = rows.reduce((a,r) => a + r.monthlyEarnings, 0);
+  const highTotal = rows.filter(r=>r.high).reduce((a,r)=>a+r.monthlyEarnings, 0);
+  const lowTotal  = rows.filter(r=>!r.high).reduce((a,r)=>a+r.monthlyEarnings, 0);
+
+  document.getElementById(tableId).innerHTML = `
+    <thead><tr>
+      <th>Mes</th>
+      <th>Temporada</th>
+      <th>PVP Medio (€/noche)</th>
+      <th>Neto Propietario (€/noche)</th>
+      <th>Noches Estimadas</th>
+      <th>Ingresos Estimados</th>
+    </tr></thead>
+    <tbody>
+      ${rows.map(r => `<tr class="${r.high ? 'highlight-row' : ''}">
+        <td>${r.label}</td>
+        <td>${r.high ? '<span style="color:var(--gold);font-weight:700;">Alta</span>' : '<span style="color:var(--text-light);">Baja</span>'}</td>
+        <td class="blue-cell">${r.pvp > 0 ? fmt(r.pvp) : '—'}</td>
+        <td class="green-cell">${r.neto > 0 ? fmt(r.neto) : '—'}</td>
+        <td style="color:var(--orange);font-weight:600;">${r.nights}</td>
+        <td class="orange-cell">${r.monthlyEarnings > 0 ? fmt(r.monthlyEarnings) : '—'}</td>
+      </tr>`).join('')}
+      <tr style="background:rgba(201,168,76,0.08);border-top:1px solid rgba(201,168,76,0.3);">
+        <td colspan="4" style="text-align:right;font-weight:700;color:var(--gold-light);font-size:13px;">TOTAL ANUAL ESTIMADO</td>
+        <td style="color:var(--orange);font-weight:700;font-size:13px;">${rows.reduce((a,r)=>a+r.nights,0)} noches</td>
+        <td style="color:var(--green);font-weight:700;font-size:15px;font-family:'Playfair Display',serif;">${fmt(total)}</td>
+      </tr>
+    </tbody>
+  `;
+}
+
+// ── PDF BLANCO PROFESIONAL ─────────────────────────────────────────────────────
+function generatePDF() {
+  if (!storedResults.highRows) { alert('Primero calcula el estudio.'); return; }
+  if (typeof window.jspdf === 'undefined') {
+    alert('La librería PDF aún se está cargando, espera un momento e inténtalo de nuevo.');
+    return;
+  }
+
+  const insideIframe = (window.self !== window.top);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const W = 297, H = 210, mg = 18;
+
+  // ── Paleta limpia sobre blanco ──
+  const cWhite    = [255, 255, 255];
+  const cBg       = [250, 250, 252];      // fondo página ligeramente off-white
+  const cGold     = [180, 140, 50];       // dorado más oscuro — legible sobre blanco
+  const cGoldBg   = [253, 248, 235];      // dorado muy tenue para fondos
+  const cNavy     = [15, 35, 65];         // azul marino oscuro — títulos
+  const cDark     = [40, 50, 65];         // texto principal
+  const cMid      = [90, 105, 125];       // texto secundario
+  const cLight    = [150, 162, 178];      // texto terciario / subtítulos
+  const cBorder   = [220, 225, 232];      // bordes de tabla
+  const cRowAlt   = [245, 247, 250];      // fila alternada tabla
+  const cGreenDk  = [34, 139, 80];        // verde oscuro legible
+  const cGreenBg  = [235, 250, 242];      // verde tenue fondo
+  const cBlueDk   = [30, 100, 180];       // azul legible
+  const cOrangeDk = [190, 110, 20];       // naranja legible
+  const cOrangeBg = [255, 245, 230];      // naranja tenue fondo
+
+  // ── Datos del formulario ──
+  const clientName    = document.getElementById('clientName').value    || '—';
+  const clientNIF     = document.getElementById('clientNIF').value     || '';
+  const clientAddress = document.getElementById('clientAddress').value || '—';
+  const clientCity    = document.getElementById('clientCity').value    || '—';
+  const studyNum      = document.getElementById('studyNum').value      || '—';
+  const rawDate       = document.getElementById('studyDate').value;
+  const studyDate     = rawDate
+    ? new Date(rawDate + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' })
+    : new Date().toLocaleDateString('es-ES');
+  const pA   = document.getElementById('commAgency').value;
+  const pI   = document.getElementById('commInsurance').value;
+  const pP   = document.getElementById('commPortals').value;
+  const pIVA = document.getElementById('commIVA').value;
+  const pE   = document.getElementById('costElec').value;
+
+  // ── Helper: cabecera de página ──
+  function pageShell(d, pageNum, totalPages) {
+    // Fondo blanco
+    d.setFillColor(...cWhite); d.rect(0, 0, W, H, 'F');
+
+    // Franja superior dorada fina
+    d.setFillColor(...cGold); d.rect(0, 0, W, 1.5, 'F');
+
+    // Bloque logo izquierda
+    d.setFillColor(...cGoldBg); d.rect(0, 1.5, 80, 22, 'F');
+    d.setTextColor(...cGold); d.setFontSize(14); d.setFont('helvetica', 'bold');
+    d.text('RentalHolidays', mg, 11);
+    d.setFontSize(6); d.setFont('helvetica', 'normal'); d.setTextColor(...cMid);
+    d.text('MAKES ME HAPPY  |  rentalholidays.es@gmail.com  |  +34 655 83 34 88', mg, 17);
+    d.text('NIF: B12698940  |  Rda. Circunvalaci\u00f3n, 188 \u2013 12003 Castell\u00f3n de la Plana', mg, 21.5);
+
+    // Bloque info derecha
+    d.setTextColor(...cNavy); d.setFontSize(10); d.setFont('helvetica', 'bold');
+    d.text('ESTUDIO DE MERCADO', W - mg, 10, { align: 'right' });
+    d.setFontSize(7); d.setFont('helvetica', 'normal'); d.setTextColor(...cMid);
+    d.text('N\u00BA ' + studyNum + '   \u2022   Fecha: ' + studyDate, W - mg, 16, { align: 'right' });
+    d.text('P\u00e1gina ' + pageNum + ' de ' + totalPages, W - mg, 21.5, { align: 'right' });
+
+    // Línea separadora
+    d.setDrawColor(...cBorder); d.setLineWidth(0.4); d.line(0, 24, W, 24);
+
+    // Footer
+    d.setDrawColor(...cBorder); d.setLineWidth(0.3); d.line(0, H - 9, W, H - 9);
+    d.setTextColor(...cLight); d.setFontSize(6.5); d.setFont('helvetica', 'normal');
+    d.text(
+      'RentalHolidays  \u2022  rentalholidays.es@gmail.com  \u2022  +34 655 83 34 88  \u2022  NIF: B12698940',
+      W / 2, H - 4.5, { align: 'center' }
+    );
+  }
+
+  // ── Helper: etiqueta de sección ──
+  function sectionLabel(d, text, y) {
+    d.setFillColor(...cGoldBg);
+    d.rect(mg, y - 4.5, W - mg * 2, 7, 'F');
+    d.setDrawColor(...cGold); d.setLineWidth(0.5);
+    d.line(mg, y - 4.5, mg, y + 2.5);
+    d.setTextColor(...cNavy); d.setFontSize(8.5); d.setFont('helvetica', 'bold');
+    d.text(text, mg + 4, y);
+    return y + 6;
+  }
+
+  // ── Helper: tabla estándar blanca ──
+  const colH = ['Mes', 'PVP Promedio', 'Neto / noche', 'Com. Agencia', 'Seg. Da\u00f1os', 'Com. Portales', 'IVA', 'Electricidad'];
+
+  function buildPriceTable(d, startY, rows) {
+    d.autoTable({
+      startY,
+      head: [colH],
+      body: rows.map(r => [
+        r.label,
+        r.pvp    > 0 ? fmtN(r.pvp)      : '—',
+        r.neto   > 0 ? fmtN(r.neto)     : '—',
+        r.agency > 0 ? fmtN(r.agency)   : '—',
+        r.insurance > 0 ? fmtN(r.insurance) : '—',
+        r.portals > 0 ? fmtN(r.portals) : '—',
+        r.ivaAmt > 0 ? fmtN(r.ivaAmt)  : '—',
+        r.elec   > 0 ? fmtN(r.elec)    : '—',
+      ]),
+      margin: { left: mg, right: mg },
+      styles: {
+        font: 'helvetica', fontSize: 8.5, cellPadding: 3.2,
+        textColor: cDark, fillColor: cWhite,
+        lineColor: cBorder, lineWidth: 0.3,
+      },
+      headStyles: {
+        fillColor: cNavy, textColor: cWhite,
+        fontStyle: 'bold', fontSize: 8, cellPadding: 3.5,
+      },
+      alternateRowStyles: { fillColor: cRowAlt },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 30, textColor: cNavy },
+        1: { textColor: cBlueDk, fontStyle: 'bold' },
+        2: { textColor: cGreenDk, fontStyle: 'bold', fillColor: cGreenBg },
+        3: { textColor: cMid },
+        4: { textColor: cMid },
+        5: { textColor: cMid },
+        6: { textColor: cMid },
+        7: { textColor: cMid },
+      },
+      tableLineColor: cBorder,
+      tableLineWidth: 0.3,
+    });
+    return d.lastAutoTable.finalY;
+  }
+
+  const totalAnual  = storedResults.allRows.reduce((a, r) => a + r.monthlyEarnings, 0);
+  const totalNoches = storedResults.allRows.reduce((a, r) => a + r.nights, 0);
+  const highEarnings = storedResults.allRows.filter(r => r.high).reduce((a,r) => a + r.monthlyEarnings, 0);
+  const lowEarnings  = storedResults.allRows.filter(r => !r.high).reduce((a,r) => a + r.monthlyEarnings, 0);
+  const withPVP      = storedResults.allRows.filter(r => r.pvp > 0);
+  const maxPVP       = withPVP.length ? Math.max(...withPVP.map(r => r.pvp)) : 0;
+  const avgNeto      = withPVP.length ? withPVP.reduce((a,r) => a + r.neto, 0) / withPVP.length : 0;
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // PÁGINA 1 — Portada + datos destinatario + resumen ejecutivo
+  // ════════════════════════════════════════════════════════════════════════════
+  pageShell(doc, 1, 3);
+
+  // Bloque destinatario
+  let y = 30;
+  doc.setFillColor(...cBg); doc.roundedRect(mg, y, 160, 20, 2, 2, 'F');
+  doc.setDrawColor(...cBorder); doc.setLineWidth(0.3); doc.roundedRect(mg, y, 160, 20, 2, 2, 'S');
+  doc.setTextColor(...cLight); doc.setFontSize(6.5); doc.setFont('helvetica', 'bold');
+  doc.text('DESTINATARIO', mg + 4, y + 6);
+  doc.setTextColor(...cNavy); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+  doc.text(clientName, mg + 4, y + 12.5);
+  doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...cMid);
+  doc.text(clientAddress + (clientCity ? '  \u2022  ' + clientCity : ''), mg + 4, y + 18);
+
+  if (clientNIF) {
+    doc.setFillColor(...cBg); doc.roundedRect(mg + 165, y, 50, 20, 2, 2, 'F');
+    doc.setDrawColor(...cBorder); doc.roundedRect(mg + 165, y, 50, 20, 2, 2, 'S');
+    doc.setTextColor(...cLight); doc.setFontSize(6.5); doc.setFont('helvetica', 'bold');
+    doc.text('NIF / DNI', mg + 169, y + 6);
+    doc.setTextColor(...cNavy); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+    doc.text(clientNIF, mg + 169, y + 14);
+  }
+
+  // Parámetros
+  y = 55;
+  doc.setFillColor(...cBg); doc.rect(mg, y, W - mg * 2, 8, 'F');
+  doc.setDrawColor(...cBorder); doc.setLineWidth(0.3); doc.rect(mg, y, W - mg * 2, 8, 'S');
+  doc.setFillColor(...cGold); doc.rect(mg, y, 2.5, 8, 'F');
+  doc.setTextColor(...cMid); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+  doc.text('PAR\u00c1METROS:', mg + 6, y + 5.2);
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(...cDark);
+  doc.text(
+    'Com. Agencia ' + pA + '%   \u2022   Seguro Da\u00f1os ' + pI + '%   \u2022   Com. Portales ' + pP + '%   \u2022   IVA ' + pIVA + '%   \u2022   Electricidad ' + pE + ' \u20AC/noche',
+    mg + 34, y + 5.2
+  );
+
+  // Tarjetas resumen ejecutivo
+  y = 68;
+  doc.setTextColor(...cLight); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+  doc.text('RESUMEN EJECUTIVO', mg, y);
+  y += 4;
+
+  const kpis = [
+    { label: 'PVP M\u00e1ximo\nde Mercado',       val: fmtN(maxPVP),     color: cBlueDk,   bg: [235, 242, 255] },
+    { label: 'Neto Medio\nPropietario / noche',   val: fmtN(avgNeto),    color: cGreenDk,  bg: cGreenBg        },
+    { label: 'Ingresos\nTemporada Alta',          val: fmtN(highEarnings), color: cGold,   bg: cGoldBg         },
+    { label: 'Ingresos\nTemporada Baja',          val: fmtN(lowEarnings),  color: cMid,    bg: cRowAlt         },
+    { label: 'TOTAL ANUAL\nESTIMADO',            val: fmtN(totalAnual), color: cGreenDk,  bg: cGreenBg        },
+  ];
+  const kpiW = (W - mg * 2 - 12) / 5;
+  kpis.forEach((k, i) => {
+    const x = mg + i * (kpiW + 3);
+    doc.setFillColor(...k.bg); doc.roundedRect(x, y, kpiW, 22, 2, 2, 'F');
+    doc.setDrawColor(...cBorder); doc.setLineWidth(0.3); doc.roundedRect(x, y, kpiW, 22, 2, 2, 'S');
+    // Línea superior de color
+    doc.setFillColor(...k.color); doc.roundedRect(x, y, kpiW, 1.5, 1, 1, 'F');
+    // Label
+    doc.setTextColor(...cMid); doc.setFontSize(6); doc.setFont('helvetica', 'bold');
+    const lines = k.label.split('\n');
+    doc.text(lines[0], x + kpiW / 2, y + 7, { align: 'center' });
+    if (lines[1]) doc.text(lines[1], x + kpiW / 2, y + 11, { align: 'center' });
+    // Valor
+    doc.setTextColor(...k.color); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+    doc.text(k.val, x + kpiW / 2, y + 19, { align: 'center' });
+  });
+
+  // Tablas de precios
+  y += 28;
+  y = sectionLabel(doc, 'TEMPORADA ALTA \u2014 Precios de Mercado y Desglose', y);
+  y = buildPriceTable(doc, y + 1, storedResults.highRows) + 8;
+  y = sectionLabel(doc, 'TEMPORADA BAJA \u2014 Precios de Mercado y Desglose', y);
+  buildPriceTable(doc, y + 1, storedResults.lowRows);
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // PÁGINA 2 — Ingresos estimados por mes
+  // ════════════════════════════════════════════════════════════════════════════
+  doc.addPage();
+  pageShell(doc, 2, 3);
+
+  y = 30;
+  y = sectionLabel(doc, 'INGRESOS ESTIMADOS DEL PROPIETARIO \u2014 Desglose Mensual', y);
+  doc.setTextColor(...cLight); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+  doc.text('Ingresos = Neto por noche \u00d7 Noches estimadas de alquiler en cada mes. Ajusta las noches seg\u00fan tu ocupaci\u00f3n esperada.', mg, y + 4);
+
+  y += 7;
+  doc.autoTable({
+    startY: y,
+    head: [['Mes', 'Temporada', 'PVP Medio (€/noche)', 'Neto Propietario (€/noche)', 'Noches Estimadas', 'Ingresos Estimados']],
+    body: [
+      ...storedResults.allRows.map(r => [
+        r.label,
+        r.high ? 'Alta' : 'Baja',
+        r.pvp  > 0 ? fmtN(r.pvp)  : '—',
+        r.neto > 0 ? fmtN(r.neto) : '—',
+        r.nights.toString(),
+        r.monthlyEarnings > 0 ? fmtN(r.monthlyEarnings) : '—',
+      ]),
+      ['TOTAL ANUAL', '', '', '', totalNoches + ' noches', fmtN(totalAnual)],
+    ],
+    margin: { left: mg, right: mg },
+    styles: {
+      font: 'helvetica', fontSize: 8.5, cellPadding: 3.2,
+      textColor: cDark, fillColor: cWhite,
+      lineColor: cBorder, lineWidth: 0.3,
+    },
+    headStyles: { fillColor: cNavy, textColor: cWhite, fontStyle: 'bold', fontSize: 8, cellPadding: 3.5 },
+    alternateRowStyles: { fillColor: cRowAlt },
+    columnStyles: {
+      0: { fontStyle: 'bold', cellWidth: 30, textColor: cNavy },
+      1: { cellWidth: 22 },
+      2: { textColor: cBlueDk, fontStyle: 'bold' },
+      3: { textColor: cGreenDk, fontStyle: 'bold', fillColor: cGreenBg },
+      4: { textColor: cOrangeDk, fontStyle: 'bold' },
+      5: { textColor: cOrangeDk, fontStyle: 'bold', fillColor: cOrangeBg },
+    },
+    tableLineColor: cBorder,
+    tableLineWidth: 0.3,
+    didParseCell: function(data) {
+      const lastIdx = storedResults.allRows.length;
+      if (data.row.index === lastIdx) {
+        data.cell.styles.fillColor  = cNavy;
+        data.cell.styles.textColor  = cWhite;
+        data.cell.styles.fontStyle  = 'bold';
+        data.cell.styles.fontSize   = 9;
+      }
+      if (data.row.index === lastIdx && data.column.index === 5) {
+        data.cell.styles.fillColor = cGreenDk;
+        data.cell.styles.textColor = cWhite;
+        data.cell.styles.fontSize  = 10;
+      }
+      if (data.row.index < lastIdx && data.column.index === 1) {
+        const r = storedResults.allRows[data.row.index];
+        data.cell.styles.textColor = r && r.high ? cGold : cLight;
+        data.cell.styles.fontStyle = r && r.high ? 'bold' : 'normal';
+      }
+    },
+  });
+
+  // Tarjetas resumen de ingresos
+  const yCards = doc.lastAutoTable.finalY + 10;
+  const cards3 = [
+    { label: 'Ingresos Temporada Alta',  val: fmtN(highEarnings), color: cGold,    bg: cGoldBg    },
+    { label: 'Ingresos Temporada Baja',  val: fmtN(lowEarnings),  color: cMid,     bg: cRowAlt    },
+    { label: 'TOTAL ANUAL ESTIMADO',     val: fmtN(totalAnual),   color: cGreenDk, bg: cGreenBg   },
+  ];
+  const c3W = (W - mg * 2 - 8) / 3;
+  cards3.forEach((c, i) => {
+    const x = mg + i * (c3W + 4);
+    doc.setFillColor(...c.bg); doc.roundedRect(x, yCards, c3W, 18, 2, 2, 'F');
+    doc.setDrawColor(...cBorder); doc.setLineWidth(0.3); doc.roundedRect(x, yCards, c3W, 18, 2, 2, 'S');
+    doc.setFillColor(...c.color); doc.roundedRect(x, yCards, c3W, 1.5, 1, 1, 'F');
+    doc.setTextColor(...cMid); doc.setFontSize(6.5); doc.setFont('helvetica', 'bold');
+    doc.text(c.label.toUpperCase(), x + c3W / 2, yCards + 7, { align: 'center' });
+    doc.setTextColor(...c.color); doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+    doc.text(c.val, x + c3W / 2, yCards + 15, { align: 'center' });
+  });
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // PÁGINA 3 — Servicios + Observaciones
+  // ════════════════════════════════════════════════════════════════════════════
+  doc.addPage();
+  pageShell(doc, 3, 3);
+
+  y = 30;
+  y = sectionLabel(doc, 'SERVICIOS INCLUIDOS EN LA GESTI\u00d3N', y);
+  y += 4;
+
+  const sCols = 3;
+  const sColW = (W - mg * 2) / sCols;
+  SERVICES.forEach((s, i) => {
+    const col = i % sCols, rowI = Math.floor(i / sCols);
+    const x = mg + col * sColW;
+    const sy = y + rowI * 9;
+    doc.setFillColor(...cBg); doc.roundedRect(x + 1, sy - 4, sColW - 4, 7.5, 1, 1, 'F');
+    doc.setDrawColor(...cBorder); doc.setLineWidth(0.2); doc.roundedRect(x + 1, sy - 4, sColW - 4, 7.5, 1, 1, 'S');
+    doc.setFillColor(...cGold); doc.circle(x + 7, sy, 2, 'F');
+    doc.setTextColor(...cWhite); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+    doc.text('\u2713', x + 5.5, sy + 0.8);
+    doc.setTextColor(...cDark); doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+    doc.text(s, x + 12, sy + 0.5);
+  });
+
+  const obsY = y + Math.ceil(SERVICES.length / sCols) * 9 + 6;
+  y = sectionLabel(doc, 'OBSERVACIONES Y CONCLUSIONES', obsY);
+  y += 4;
+
+  const highTxt    = storedResults.highRows.filter(r => r.pvp > 0).map(r => r.label + ': ' + fmtN(r.pvp)).join(', ');
+  const obsText    = 'Los precios promedio del mercado en temporada alta son: ' + (highTxt || 'sin datos') + '. El precio de venta al p\u00fablico m\u00e1ximo analizado en la zona es de ' + fmtN(maxPVP) + '. Tomando como referencia las noches de ocupaci\u00f3n estimadas, los ingresos anuales proyectados para el propietario ascienden a ' + fmtN(totalAnual) + '. Los alojamientos con precio muy elevado tienden a registrar menor ocupaci\u00f3n; ajustar el precio al nivel del mercado permite maximizar los ingresos totales a lo largo del a\u00f1o.';
+
+  doc.setFillColor(...cBg); doc.roundedRect(mg, y - 2, W - mg * 2, 32, 2, 2, 'F');
+  doc.setDrawColor(...cBorder); doc.setLineWidth(0.3); doc.roundedRect(mg, y - 2, W - mg * 2, 32, 2, 2, 'S');
+  doc.setFillColor(...cGold); doc.roundedRect(mg, y - 2, 2.5, 32, 1, 1, 'F');
+  doc.setTextColor(...cDark); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text(doc.splitTextToSize(obsText, W - mg * 2 - 10), mg + 6, y + 4);
+
+  // Firma / cierre
+  const sigY = H - 30;
+  doc.setDrawColor(...cBorder); doc.setLineWidth(0.3); doc.line(mg, sigY, mg + 60, sigY);
+  doc.setTextColor(...cLight); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+  doc.text('Firma y sello RentalHolidays', mg, sigY + 5);
+  doc.setDrawColor(...cBorder); doc.line(W - mg - 60, sigY, W - mg, sigY);
+  doc.text('Firma y conformidad del propietario', W - mg - 60, sigY + 5);
+
+  // ── Guardar ──
+  const safeName = clientName.replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const safeDate = studyDate.replace(/\//g, '-');
+  const fileName = 'EstudioMercado_' + safeName + '_' + safeDate + '.pdf';
+
+  try {
+    if (insideIframe) {
+      const pdfDataUri = doc.output('datauristring');
+      const newTab = window.open('', '_blank');
+      if (newTab) {
+        newTab.document.write(
+          '<html><head><title>' + fileName + '</title></head>' +
+          '<body style="margin:0;background:#eee">' +
+          '<embed width="100%" height="100%" src="' + pdfDataUri + '" type="application/pdf">' +
+          '<p style="font-family:sans-serif;padding:20px;display:none">Si el PDF no se muestra, ' +
+          '<a href="' + pdfDataUri + '" download="' + fileName + '">haz clic aqu\u00ed para descargarlo</a>.</p>' +
+          '</body></html>'
+        );
+        newTab.document.close();
+      } else {
+        throw new Error('popup blocked');
+      }
+    } else {
+      doc.save(fileName);
+    }
+  } catch(e) {
+    const blob = doc.output('blob');
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = fileName; a.target = '_blank';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+}
+</script>
+</body>
+</html>
